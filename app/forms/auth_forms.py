@@ -13,16 +13,10 @@ class UserRegistrationForm(UserCreationForm):
     )
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'placeholder': 'name@example.com', 'class': 'form-control'}))
     phone = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': '+1 (555) 000-0000', 'class': 'form-control'}))
-    preferred_currency = forms.ChoiceField(
-        choices=[('ETH', 'Ethereum (ETH)'), ('SOL', 'Solana (SOL)'), ('BTC', 'Bitcoin (BTC)'), ('USDT', 'Tether (USDT)')],
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        initial='ETH',
-        required=False
-    )
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'role', 'phone', 'preferred_currency')
+        fields = ('username', 'email', 'first_name', 'last_name', 'role', 'phone')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

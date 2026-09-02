@@ -214,7 +214,7 @@ def submit_offer(request, slug):
             tx.land = land
             tx.buyer = request.user
             tx.seller = land.seller
-            tx.seller_wallet_address = land.seller.crypto_wallet_address or '0xSellerWalletPendingVerification'
+            tx.seller_wallet_address = land.seller.get_wallet_for_currency(land.crypto_currency) or land.seller.crypto_wallet_address or '0xSellerWalletPendingVerification'
             tx.status = Transaction.Status.OFFER_SUBMITTED
             tx.save()
 

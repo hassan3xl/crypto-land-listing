@@ -1,15 +1,22 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from app.models import User, LandListing, LandImage, Transaction, SavedListing
+from app.models import User, LandListing, LandImage, Transaction, SavedListing, SellerWallet
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
-        ('Crypto & Role Info', {'fields': ('role', 'phone', 'crypto_wallet_address', 'preferred_currency', 'profile_picture', 'bio', 'is_verified_seller')}),
+        ('Crypto & Role Info', {'fields': ('role', 'phone', 'crypto_wallet_address', 'profile_picture', 'bio', 'is_verified_seller')}),
     )
     list_display = ('username', 'email', 'role', 'is_verified_seller', 'crypto_wallet_address', 'is_staff')
     list_filter = ('role', 'is_verified_seller', 'is_staff', 'is_active')
+
+
+@admin.register(SellerWallet)
+class SellerWalletAdmin(admin.ModelAdmin):
+    list_display = ('label', 'user', 'currency', 'wallet_address', 'is_default', 'created_at')
+    list_filter = ('currency', 'is_default')
+    search_fields = ('label', 'wallet_address', 'user__username', 'user__email')
 
 
 class LandImageInline(admin.TabularInline):

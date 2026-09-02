@@ -5,69 +5,231 @@
 
 {% block content %}
 <div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-7">
-      <div class="p-4 p-md-5 rounded-4 shadow-lg" style="background: #ffffff; border: 1px solid var(--border-color);">
-        <div class="d-flex align-items-center gap-3 mb-4">
-          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; font-size: 1.4rem;">
-            <i class="fa-solid fa-user-gear"></i>
+  <!-- Profile Page Header -->
+  <div class="p-4 rounded-4 shadow-sm bg-white border border-secondary border-opacity-25 mb-4">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        {% if user.get_avatar_url %}
+        <img src="{{ user.get_avatar_url }}" class="rounded-circle border border-2 border-success p-1" width="68" height="68" alt="Avatar">
+        {% else %}
+        <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center border border-2 border-success p-1" style="width: 68px; height: 68px; font-size: 1.8rem;">
+          {{ user.username|slice:":1"|upper }}
+        </div>
+        {% endif %}
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h3 class="font-monospace text-dark fw-bold mb-0">{{ user.first_name }} {{ user.last_name|default:user.username }}</h3>
+            <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 text-uppercase font-monospace">
+              {{ user.get_role_display }}
+            </span>
           </div>
+          <p class="text-muted small mb-0"><i class="fa-regular fa-envelope me-1"></i> {{ user.email }} | <i class="fa-solid fa-phone me-1"></i> {{ user.phone|default:"No phone added" }}</p>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary-green fw-bold px-4 py-2 font-monospace shadow-sm" data-bs-toggle="modal" data-bs-target="#addWalletModal">
+        <i class="fa-solid fa-plus-circle me-1"></i> Add Wallet Address
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Crypto Receiving Wallets -->
+    <div class="col-lg-7">
+      <div class="p-4 rounded-4 shadow-sm bg-white border border-secondary border-opacity-25 h-100">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
           <div>
-            <h3 class="font-monospace text-dark fw-bold mb-0">Profile & Wallet Settings</h3>
-            <p class="text-muted small mb-0">Manage your crypto wallet addresses and personal credentials.</p>
+            <h4 class="font-monospace text-dark fw-bold mb-1">
+              <i class="fa-solid fa-wallet text-success me-2"></i> Saved Crypto Receiving Wallets
+            </h4>
+            <p class="text-muted small mb-0">Buyers can see these receiving addresses when making offers or paying in SOL, ETH, BTC, or USDT.</p>
           </div>
         </div>
 
-        <form method="POST">
+        <div class="d-flex flex-column gap-3">
+          {% for wallet in saved_wallets %}
+          <div class="p-3 rounded-3 border {% if wallet.is_default %}border-success bg-success bg-opacity-10{% else %}border-secondary border-opacity-25 bg-light{% endif %} transition-all">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge {% if wallet.currency == 'SOL' %}bg-purple text-white{% elif wallet.currency == 'ETH' %}bg-primary{% elif wallet.currency == 'BTC' %}bg-warning text-dark{% elif wallet.currency == 'USDT' %}bg-success text-white{% else %}bg-secondary{% endif %} font-monospace fs-6 px-3 py-1" style="{% if wallet.currency == 'SOL' %}background: #845ef7;{% endif %}">
+                  {{ wallet.currency }}
+                </span>
+                <span class="fw-bold font-monospace text-dark fs-6">{{ wallet.label }}</span>
+                {% if wallet.is_default %}
+                <span class="badge bg-success font-monospace small"><i class="fa-solid fa-circle-check me-1"></i> Default for {{ wallet.currency }}</span>
+                {% endif %}
+              </div>
+
+              <div class="d-flex align-items-center gap-2">
+                {% if not wallet.is_default %}
+                <form method="POST" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="set_default_wallet">
+                  <input type="hidden" name="wallet_id" value="{{ wallet.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-success font-monospace py-1 px-2" style="font-size: 0.75rem;">
+                    Set Default
+                  </button>
+                </form>
+                {% endif %}
+
+                <form method="POST" class="d-inline" onsubmit="return confirm('Remove wallet {{ wallet.label }}?');">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_wallet">
+                  <input type="hidden" name="wallet_id" value="{{ wallet.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger font-monospace py-1 px-2" style="font-size: 0.75rem;" title="Delete Wallet">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Address Display & Copy Button -->
+            <div class="d-flex align-items-center justify-content-between bg-white p-2 rounded border border-secondary border-opacity-25 mt-2">
+              <span class="font-monospace text-dark small fw-semibold text-break me-2">{{ wallet.wallet_address }}</span>
+              <button type="button" class="btn btn-sm btn-glass font-monospace flex-shrink-0" onclick="copyTextToClipboard('{{ wallet.wallet_address }}', this)">
+                <i class="fa-regular fa-copy me-1"></i> Copy
+              </button>
+            </div>
+          </div>
+          {% empty %}
+          <div class="p-4 text-center text-muted bg-light rounded-3 border border-dashed border-secondary border-opacity-50">
+            <i class="fa-solid fa-wallet text-secondary fs-1 mb-2 d-block opacity-50"></i>
+            <h6 class="text-dark fw-bold mb-1">No Wallet Addresses Saved Yet</h6>
+            <p class="small mb-3 text-muted">Add your SOL, ETH, BTC, or USDT addresses so buyers can select and send payments directly to your designated receiving wallet.</p>
+            <button type="button" class="btn btn-primary-green btn-sm font-monospace fw-bold" data-bs-toggle="modal" data-bs-target="#addWalletModal">
+              <i class="fa-solid fa-plus-circle me-1"></i> Add First Wallet Address
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Personal & Contact Information -->
+    <div class="col-lg-5">
+      <div class="p-4 rounded-4 shadow-sm bg-white border border-secondary border-opacity-25 h-100">
+        <h4 class="font-monospace text-dark fw-bold mb-3">
+          <i class="fa-solid fa-user-pen text-success me-2"></i> Edit Account Info
+        </h4>
+
+        <form method="POST" enctype="multipart/form-data">
           {% csrf_token %}
 
           <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label font-monospace">FIRST NAME</label>
+            <div class="col-6">
+              <label class="form-label font-monospace small">FIRST NAME</label>
               {{ form.first_name }}
             </div>
-            <div class="col-md-6">
-              <label class="form-label font-monospace">LAST NAME</label>
+            <div class="col-6">
+              <label class="form-label font-monospace small">LAST NAME</label>
               {{ form.last_name }}
             </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label font-monospace">EMAIL ADDRESS</label>
+            <label class="form-label font-monospace small">EMAIL ADDRESS *</label>
             {{ form.email }}
           </div>
 
           <div class="mb-3">
-            <label class="form-label font-monospace">PRIMARY CRYPTO WALLET ADDRESS</label>
-            {{ form.crypto_wallet_address }}
-            <div class="form-text small text-muted">Ethereum (0x...), Solana, or Bitcoin address to send/receive escrow payments.</div>
-          </div>
-
-          <div class="row g-3 mb-4">
-            <div class="col-md-6">
-              <label class="form-label font-monospace">PREFERRED CURRENCY</label>
-              {{ form.preferred_currency }}
-            </div>
-            <div class="col-md-6">
-              <label class="form-label font-monospace">PHONE / CONTACT</label>
-              {{ form.phone }}
-            </div>
+            <label class="form-label font-monospace small">PHONE / CONTACT</label>
+            {{ form.phone }}
           </div>
 
           <div class="mb-4">
-            <label class="form-label font-monospace">BIO / COMPANY DETAILS</label>
+            <label class="form-label font-monospace small">BIO / COMPANY DETAILS</label>
             {{ form.bio }}
           </div>
 
-          <div class="d-flex justify-content-end gap-3">
-            <a href="{% url 'app:home' %}" class="btn btn-glass px-4">Cancel</a>
-            <button type="submit" class="btn btn-primary-green px-5 fw-bold">
-              Save Profile Settings
-            </button>
-          </div>
+          <button type="submit" class="btn btn-primary-green w-100 font-monospace fw-bold py-2">
+            Save Profile Details
+          </button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Modal to Add New Wallet Address -->
+<div class="modal fade" id="addWalletModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom border-secondary border-opacity-25 bg-light rounded-top p-3">
+        <h5 class="modal-title font-monospace fw-bold text-dark mb-0">
+          <i class="fa-solid fa-plus-circle text-success me-2"></i> Add Crypto Wallet Address
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_wallet">
+
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label font-monospace small fw-bold text-dark">1. CRYPTOCURRENCY *</label>
+            {{ wallet_form.currency }}
+            <div class="form-text small text-muted">Select SOL, ETH, BTC, USDT, BNB, or MATIC.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace small fw-bold text-dark">2. WALLET ADDRESS *</label>
+            {{ wallet_form.wallet_address }}
+            <div class="form-text small text-muted">Paste your wallet address (Solana Base58, Ethereum 0x..., or Bitcoin address).</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace small fw-bold text-dark">3. WALLET LABEL (OPTIONAL)</label>
+            {{ wallet_form.label }}
+            <div class="form-text small text-muted">Auto-defaults to e.g. "Ethereum Wallet", "Solana Wallet", "Bitcoin Wallet".</div>
+          </div>
+
+          <div class="form-check p-3 rounded bg-light border border-secondary border-opacity-25 mb-2">
+            {{ wallet_form.is_default }}
+            <label class="form-check-label font-monospace small text-dark fw-bold ms-2" for="{{ wallet_form.is_default.id_for_label }}">
+              Set as Default Receiving Wallet for this Currency
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer border-top border-secondary border-opacity-25 bg-light rounded-bottom p-3">
+          <button type="button" class="btn btn-glass btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-green btn-sm fw-bold px-4">
+            Save Wallet Address
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const currencySelect = document.getElementById('id_wallet_currency');
+  const labelInput = document.getElementById('id_label');
+
+  const defaultLabels = {
+    'ETH': 'Ethereum Wallet',
+    'SOL': 'Solana Wallet',
+    'BTC': 'Bitcoin Wallet',
+    'USDT': 'USDT Wallet',
+    'BNB': 'BNB Wallet',
+    'MATIC': 'Polygon Wallet',
+    'OTHER': 'Crypto Wallet'
+  };
+
+  if (currencySelect && labelInput) {
+    function updateDefaultLabel() {
+      const selected = currencySelect.value;
+      if (selected && defaultLabels[selected]) {
+        labelInput.value = defaultLabels[selected];
+      }
+    }
+    currencySelect.addEventListener('change', updateDefaultLabel);
+    updateDefaultLabel();
+  }
+});
+</script>
+{% endblock %}
 {% endblock %}

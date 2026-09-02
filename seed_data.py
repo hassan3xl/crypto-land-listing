@@ -5,7 +5,8 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.dev')
 django.setup()
 
-from app.models import User, UserRole, LandListing, ZoningType, Transaction, SavedListing
+from app.models import User, UserRole, LandListing, ZoningType, Transaction, SavedListing, SellerWallet
+from notifications.models.notification import Notification
 
 def seed():
     print("Seeding MyApp database with Nigerian land plots & demo users...")
@@ -39,7 +40,6 @@ def seed():
             'role': UserRole.SELLER,
             'phone': '+234 803 112 4490',
             'crypto_wallet_address': '0x9928A401c107B8821948b814FA7910028a192831',
-            'preferred_currency': 'ETH',
             'is_verified_seller': True,
             'bio': 'Pioneer in crypto real estate and prime coastal land acquisitions across Lagos and Abuja.'
         }
@@ -48,6 +48,26 @@ def seed():
         seller1.set_password('seller123')
         seller1.save()
         print("-> Created seller user (cryptoland_realty / seller123)")
+
+    # Seed wallets for seller1
+    SellerWallet.objects.get_or_create(
+        user=seller1,
+        currency='ETH',
+        wallet_address='0x9928A401c107B8821948b814FA7910028a192831',
+        defaults={'label': 'Ethereum Wallet', 'is_default': True}
+    )
+    SellerWallet.objects.get_or_create(
+        user=seller1,
+        currency='USDT',
+        wallet_address='0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+        defaults={'label': 'USDT Wallet', 'is_default': True}
+    )
+    SellerWallet.objects.get_or_create(
+        user=seller1,
+        currency='BTC',
+        wallet_address='bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+        defaults={'label': 'Bitcoin Wallet', 'is_default': True}
+    )
 
     # Create Seller 2
     seller2, created = User.objects.get_or_create(
@@ -59,7 +79,6 @@ def seed():
             'role': UserRole.SELLER,
             'phone': '+234 812 400 9911',
             'crypto_wallet_address': '8zF49bHqW8mKLn201PqxT9A1ZLm472NkaP83mV',
-            'preferred_currency': 'SOL',
             'is_verified_seller': True,
             'bio': 'Specializing in commercial zoning plots and agricultural hectares in Lagos, Abuja, and Port Harcourt.'
         }
@@ -68,6 +87,20 @@ def seed():
         seller2.set_password('seller123')
         seller2.save()
         print("-> Created seller user (solana_acres / seller123)")
+
+    # Seed wallets for seller2
+    SellerWallet.objects.get_or_create(
+        user=seller2,
+        currency='SOL',
+        wallet_address='8zF49bHqW8mKLn201PqxT9A1ZLm472NkaP83mV',
+        defaults={'label': 'Solana Wallet', 'is_default': True}
+    )
+    SellerWallet.objects.get_or_create(
+        user=seller2,
+        currency='ETH',
+        wallet_address='0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',
+        defaults={'label': 'Ethereum Wallet', 'is_default': True}
+    )
 
     # Create Buyer
     buyer1, created = User.objects.get_or_create(
@@ -79,7 +112,6 @@ def seed():
             'role': UserRole.BUYER,
             'phone': '+234 809 555 1200',
             'crypto_wallet_address': '0x438A9114b09C38194A1029F8a00293a81038101',
-            'preferred_currency': 'ETH',
             'bio': 'Web3 investor acquiring physical land assets for long-term vault holding.'
         }
     )
@@ -223,6 +255,29 @@ def seed():
         )
         if created_tx:
             print("-> Created sample buyer purchase offer!")
+
+        # Create sample notifications
+        Notification.objects.get_or_create(
+            recipient=sample_land.seller,
+            actor=buyer1,
+            title=f"New Crypto Offer on {sample_land.title}",
+            defaults={
+                'message': f"{buyer1.first_name or buyer1.username} offered 28.5 ETH (~$91,200.00) for your land in Lekki Phase 1.",
+                'category': 'offer_received',
+                'type': 'info'
+            }
+        )
+
+        Notification.objects.get_or_create(
+            recipient=buyer1,
+            actor=admin,
+            title="Welcome to MyApp Crypto Land Marketplace",
+            defaults={
+                'message': "Your account is active. You can browse verified land plots, submit Web3 crypto offers, and lock funds in escrow.",
+                'category': 'system_alert',
+                'type': 'success'
+            }
+        )
 
     print("Seeding completed successfully!")
 

@@ -23,6 +23,10 @@ def crypto_land_context(request):
             is_read=False
         ).count()
         
+        context['recent_notifications'] = Notification.objects.filter(
+            recipient=request.user
+        ).order_by('-created_at')[:5]
+        
         context['saved_lands_count'] = SavedListing.objects.filter(user=request.user).count()
 
         if request.user.is_buyer():

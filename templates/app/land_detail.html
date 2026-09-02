@@ -40,56 +40,67 @@
       </div>
 
       <!-- Land Header Info -->
-      <div class="p-4 rounded-4 mb-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color);">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-3">
-          <div>
-            <h1 class="text-dark font-monospace fw-bold mb-2">{{ land.title }}</h1>
-            <div class="text-muted fs-6">
-              <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ land.location }}{% if land.lga %}, LGA: {{ land.lga }}{% endif %}{% if land.state %}, {{ land.state }} State{% endif %}
-            </div>
-          </div>
-          <div class="mt-3 mt-md-0 text-md-end">
-            <span class="badge bg-light border border-secondary text-success font-monospace px-3 py-2 fs-6">
-              Title / Survey No: {{ land.parcel_id }}
-            </span>
-          </div>
+      <div class="p-4 rounded-4 mb-4 shadow-sm bg-white border border-secondary border-opacity-25">
+        <h2 class="text-dark font-monospace fw-bold mb-2 fs-3">{{ land.title }}</h2>
+        
+        <div class="text-muted small mb-3">
+          <i class="fa-solid fa-location-dot text-success me-1"></i> {{ land.location }}{% if land.lga %}, {{ land.lga }}{% endif %}{% if land.state %}, {{ land.state }}{% endif %}
+        </div>
+
+        <!-- Meta Pills Row -->
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+          {% if land.parcel_id %}
+          <span class="badge bg-light border border-secondary text-dark font-monospace px-3 py-2">
+            <i class="fa-solid fa-file-contract text-success me-1"></i> Title / Survey No: <strong class="ms-1">{{ land.parcel_id }}</strong>
+          </span>
+          {% endif %}
+          <span class="badge bg-light border border-secondary text-dark font-monospace px-3 py-2">
+            <i class="fa-solid fa-layer-group text-success me-1"></i> Zoning: <strong class="ms-1">{{ land.get_zoning_type_display }}</strong>
+          </span>
+          {% if land.deed_verified %}
+          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-30 font-monospace px-3 py-2">
+            <i class="fa-solid fa-shield-check me-1"></i> Title Deed Verified
+          </span>
+          {% endif %}
         </div>
 
         <!-- Specs Grid -->
-        <div class="row g-3 my-2 text-center">
+        <div class="row g-3 mb-4 text-center">
           <div class="col-6 col-md-3">
             <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
-              <div class="small text-muted font-monospace"><i class="fa-solid fa-ruler-combined text-success me-1"></i> LAND AREA</div>
-              <div class="fs-5 fw-bold text-dark mt-1">{{ land.formatted_size_plots }}</div>
+              <div class="small text-muted font-monospace mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-ruler-combined text-success me-1"></i> LAND AREA</div>
+              <div class="fs-6 fw-bold text-dark font-monospace">{{ land.formatted_size_plots }}</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
-              <div class="small text-muted font-monospace"><i class="fa-solid fa-layer-group text-success me-1"></i> ZONING</div>
-              <div class="fs-5 fw-bold text-dark mt-1">{{ land.get_zoning_type_display }}</div>
+              <div class="small text-muted font-monospace mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-layer-group text-success me-1"></i> ZONING</div>
+              <div class="fs-6 fw-bold text-dark font-monospace">{{ land.get_zoning_type_display }}</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
-              <div class="small text-muted font-monospace"><i class="fa-solid fa-compass text-success me-1"></i> LATITUDE</div>
-              <div class="fs-6 fw-bold text-dark mt-1 font-monospace">{{ land.latitude|default:"N/A" }}</div>
+              <div class="small text-muted font-monospace mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-compass text-success me-1"></i> LATITUDE</div>
+              <div class="fs-6 fw-bold text-dark font-monospace">{{ land.latitude|default:"N/A" }}</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
-              <div class="small text-muted font-monospace"><i class="fa-solid fa-compass text-success me-1"></i> LONGITUDE</div>
-              <div class="fs-6 fw-bold text-dark mt-1 font-monospace">{{ land.longitude|default:"N/A" }}</div>
+              <div class="small text-muted font-monospace mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-compass text-success me-1"></i> LONGITUDE</div>
+              <div class="fs-6 fw-bold text-dark font-monospace">{{ land.longitude|default:"N/A" }}</div>
             </div>
           </div>
         </div>
 
+        <hr class="my-4 border-secondary border-opacity-25">
+
         <!-- Property Description -->
-        <h5 class="text-dark font-monospace mt-4 mb-2 fw-bold">Property Description</h5>
-        <p class="text-secondary leading-relaxed" style="white-space: pre-line;">{{ land.description }}</p>
+        <h5 class="text-dark font-monospace mb-2 fw-bold fs-6"><i class="fa-solid fa-align-left text-success me-2"></i> Property Description</h5>
+        <p class="text-secondary leading-relaxed mb-4" style="white-space: pre-line; line-height: 1.6; font-size: 0.95rem;">{{ land.description }}</p>
 
         {% if land.address %}
-        <h5 class="text-dark font-monospace mt-4 mb-2 fw-bold">Physical / Street Address</h5>
-        <p class="text-dark font-monospace small bg-light p-3 rounded border border-secondary border-opacity-25">{{ land.address }}</p>
+        <h5 class="text-dark font-monospace mb-2 fw-bold fs-6"><i class="fa-solid fa-map-pin text-success me-2"></i> Physical / Street Address</h5>
+        <p class="text-dark font-monospace small bg-light p-3 rounded border border-secondary border-opacity-25 mb-0">{{ land.address }}</p>
         {% endif %}
       </div>
 

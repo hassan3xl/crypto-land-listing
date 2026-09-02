@@ -25,11 +25,6 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.BUYER)
     phone = models.CharField(max_length=24, blank=True)
     crypto_wallet_address = models.CharField(max_length=128, blank=True, help_text="Web3 Wallet Address (ETH, SOL, BTC, USDT)")
-    preferred_currency = models.CharField(
-        max_length=10,
-        default='ETH',
-        choices=[('ETH', 'Ethereum (ETH)'), ('SOL', 'Solana (SOL)'), ('BTC', 'Bitcoin (BTC)'), ('USDT', 'Tether (USDT)')]
-    )
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     bio = models.TextField(blank=True)
     is_verified_seller = models.BooleanField(default=False)
@@ -43,6 +38,15 @@ class User(AbstractUser):
     def is_admin_user(self):
         return self.role == UserRole.ADMIN or self.is_superuser or self.is_staff
 
+    def get_wallet_for_currency(self, currency):
+        """Returns seller's default saved wallet address for a given currency, fallback to primary wallet address."""
+        wallet = self.saved_wallets.filter(currency=currency, is_default=True).first()
+        if not wallet:
+            wallet = self.saved_wallets.filter(currency=currency).first()
+        if wallet:
+            return wallet.wallet_address
+        return self.crypto_wallet_address or ''
+
     @property
     def get_avatar_url(self):
         if self.profile_picture:
@@ -51,6 +55,49 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
+
+class SellerWallet(models.Model):
+    class Currency(models.TextChoices):
+        ETH = 'ETH', 'Ethereum (ETH)'
+        SOL = 'SOL', 'Solana (SOL)'
+        BTC = 'BTC', 'Bitcoin (BTC)'
+        USDT = 'USDT', 'Tether (USDT)'
+        BNB = 'BNB', 'BNB Smart Chain (BNB)'
+        MATIC = 'MATIC', 'Polygon (MATIC)'
+        OTHER = 'OTHER', 'Other Crypto'
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_wallets')
+    label = models.CharField(max_length=100, help_text="Wallet Label (e.g. Primary ETH Treasury, Solana Cold Storage, Business BTC)")
+    currency = models.CharField(max_length=20, choices=Currency.choices, default=Currency.ETH)
+    wallet_address = models.CharField(max_length=128)
+    is_default = models.BooleanField(default=False, help_text="Set as default wallet for this currency")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-is_default', '-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.label or not self.label.strip():
+            currency_names = {
+                'ETH': 'Ethereum Wallet',
+                'SOL': 'Solana Wallet',
+                'BTC': 'Bitcoin Wallet',
+                'USDT': 'USDT Wallet',
+                'BNB': 'BNB Wallet',
+                'MATIC': 'Polygon Wallet',
+                'OTHER': 'Crypto Wallet',
+            }
+            self.label = currency_names.get(self.currency, f"{self.currency} Wallet")
+
+        if self.is_default:
+            SellerWallet.objects.filter(user=self.user, currency=self.currency).exclude(pk=self.pk).update(is_default=False)
+            self.user.crypto_wallet_address = self.wallet_address
+            self.user.save(update_fields=['crypto_wallet_address'])
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.label} ({self.currency}) — {self.wallet_address[:10]}..."
 
 
 class LandListing(models.Model):
@@ -65,7 +112,7 @@ class LandListing(models.Model):
     slug = models.SlugField(max_length=280, unique=True, blank=True)
     description = models.TextField()
     location = models.CharField(max_length=255, help_text="City/Area, State, Country (e.g. Lekki Phase 1, Lagos State)")
-    state = models.CharField(max_length=50, blank=True, help_text="Nigerian State / FCT")
+    state = models.CharField(max_length=50, blank=True, help_text="State / FCT")
     lga = models.CharField(max_length=100, blank=True, help_text="Local Government Area (LGA)")
     address = models.TextField(blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -77,13 +124,13 @@ class LandListing(models.Model):
         choices=[('ETH', 'ETH'), ('SOL', 'SOL'), ('BTC', 'BTC'), ('USDT', 'USDT')],
         default='ETH'
     )
-    price_usd = models.DecimalField(max_digits=12, decimal_places=2)
+    price_usd = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     
     size_sqm = models.DecimalField(max_digits=12, decimal_places=2, help_text="Land Area in Square Meters (Sqm)")
     size_acres = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Size in Acres/Hectares")
     zoning_type = models.CharField(max_length=50, choices=ZoningType.choices, default=ZoningType.RESIDENTIAL)
     
-    parcel_id = models.CharField(max_length=100, unique=True, help_text="Title Document / Survey Plan No. (e.g. C of O No. 2026/8819)")
+    parcel_id = models.CharField(max_length=100, unique=True, blank=True, null=True, help_text="Title Document / Survey Plan No. (e.g. C of O No. 2026/8819)")
     deed_verified = models.BooleanField(default=True)
     featured_image = models.ImageField(upload_to='land_images/', blank=True, null=True)
     
@@ -97,6 +144,22 @@ class LandListing(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+    @property
+    def get_featured_image_url(self):
+        """Return featured image URL, gallery first image URL, or standard land fallback."""
+        if self.featured_image:
+            try:
+                return self.featured_image.url
+            except Exception:
+                pass
+        first_gallery = self.images.first()
+        if first_gallery and first_gallery.image:
+            try:
+                return first_gallery.image.url
+            except Exception:
+                pass
+        return "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80"
 
     @property
     def formatted_size_plots(self):

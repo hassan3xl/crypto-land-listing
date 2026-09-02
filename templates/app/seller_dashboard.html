@@ -1,15 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Seller Hub — MyApp{% endblock %}
+{% block title %}Seller Dashboard — MyApp{% endblock %}
 
 {% block content %}
 <div class="container py-4">
   <!-- Header -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
     <div>
-      <h1 class="font-monospace text-dark fw-bold mb-1 fs-2"><i class="fa-solid fa-store text-success me-2"></i> Seller Hub</h1>
-      <p class="text-muted mb-0">Manage listed land properties, review incoming crypto offers, and track escrow status.</p>
+      <h1 class="font-monospace text-dark fw-bold mb-1 fs-2">
+        <i class="fa-solid fa-store text-success me-2"></i> Seller Dashboard
+      </h1>
+      <p class="text-muted mb-0">
+        Manage listed land properties, review incoming crypto offers, and track escrow status.
+      </p>
     </div>
     <div class="mt-3 mt-md-0">
       <a href="{% url 'app:create_land' %}" class="btn btn-primary-green">
@@ -47,8 +51,10 @@
   </div>
 
   <!-- Received Offers Section -->
-  <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color);">
-    <h4 class="font-monospace text-dark fw-bold mb-3"><i class="fa-solid fa-inbox text-success me-2"></i> Received Purchase Offers</h4>
+  <div class="p-4 rounded-4 mb-5 shadow-sm bg-white border border-secondary border-opacity-25">
+    <h4 class="font-monospace text-dark fw-bold mb-3">
+      <i class="fa-solid fa-inbox text-success me-2"></i> Received Purchase Offers
+    </h4>
 
     <div class="table-responsive">
       <table class="table table-dark table-hover align-middle mb-0 border-secondary border-opacity-25">
@@ -66,8 +72,12 @@
           {% for tx in received_offers %}
           <tr>
             <td>
-              <div class="fw-bold"><a href="{% url 'app:land_detail' slug=tx.land.slug %}" class="text-dark text-decoration-none">{{ tx.land.title }}</a></div>
-              <div class="small text-muted font-monospace"><i class="fa-solid fa-location-dot me-1"></i> {{ tx.land.location }}</div>
+              <div class="fw-bold">
+                <a href="{% url 'app:land_detail' slug=tx.land.slug %}" class="text-dark text-decoration-none">{{ tx.land.title }}</a>
+              </div>
+              <div class="small text-muted font-monospace">
+                <i class="fa-solid fa-location-dot me-1"></i> {{ tx.land.location }}
+              </div>
             </td>
             <td>
               <div class="fw-semibold text-dark">{{ tx.buyer.first_name }} {{ tx.buyer.last_name|default:tx.buyer.username }}</div>
@@ -77,31 +87,29 @@
               <div class="fw-bold text-success font-monospace">{{ tx.offer_price_crypto }} {{ tx.crypto_currency }}</div>
               <div class="small text-muted">≈ ${{ tx.offer_price_usd|floatformat:2 }} USD</div>
             </td>
-            <td class="font-monospace small text-muted" style="max-width:140px; overflow:hidden; text-overflow:ellipsis;">
+            <td class="font-monospace small text-muted" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis;">
               {{ tx.buyer_wallet_address|default:"Not Provided" }}
             </td>
             <td>
-              <span class="badge badge-status status-{{ tx.status }}">
-                {{ tx.get_status_display }}
-              </span>
+              <span class="badge badge-status status-{{ tx.status }}">{{ tx.get_status_display }}</span>
             </td>
             <td class="text-end">
               {% if tx.status == 'offer_submitted' %}
-                <form action="{% url 'app:respond_to_offer' transaction_id=tx.transaction_id %}" method="POST" class="d-inline-flex gap-1">
-                  {% csrf_token %}
-                  <button type="submit" name="action" value="accept" class="btn btn-sm btn-success fw-bold">
-                    <i class="fa-solid fa-check me-1"></i> Accept
-                  </button>
-                  <button type="submit" name="action" value="reject" class="btn btn-sm btn-outline-danger">
-                    Decline
-                  </button>
-                </form>
+              <form action="{% url 'app:respond_to_offer' transaction_id=tx.transaction_id %}" method="POST" class="d-inline-flex gap-1">
+                {% csrf_token %}
+                <button type="submit" name="action" value="accept" class="btn btn-sm btn-success fw-bold">
+                  <i class="fa-solid fa-check me-1"></i> Accept
+                </button>
+                <button type="submit" name="action" value="reject" class="btn btn-sm btn-outline-danger">
+                  Decline
+                </button>
+              </form>
               {% elif tx.status == 'escrow_locked' %}
-                <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 p-2 font-monospace">
-                  <i class="fa-solid fa-lock me-1"></i> Escrow Funds Locked
-                </span>
+              <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 p-2 font-monospace">
+                <i class="fa-solid fa-lock me-1"></i> Escrow Funds Locked
+              </span>
               {% else %}
-                <span class="small text-muted font-monospace">No Action Required</span>
+              <span class="small text-muted font-monospace">No Action Required</span>
               {% endif %}
             </td>
           </tr>
@@ -117,55 +125,107 @@
     </div>
   </div>
 
-  <!-- Seller's Listings Table -->
-  <div class="p-4 rounded-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color);">
-    <h4 class="font-monospace text-dark fw-bold mb-3"><i class="fa-solid fa-layer-group text-success me-2"></i> My Land Property Listings</h4>
+  <!-- Seller's Listings (Property Cards Grid) -->
+  <div class="p-4 rounded-4 shadow-sm bg-white border border-secondary border-opacity-25 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+      <div>
+        <h4 class="font-monospace text-dark fw-bold mb-1">
+          <i class="fa-solid fa-layer-group text-success me-2"></i> My Listed Land Properties
+        </h4>
+        <p class="text-muted small mb-0">Overview of active plots, zoning status, pricing, and property management.</p>
+      </div>
+      <a href="{% url 'app:create_land' %}" class="btn btn-sm btn-primary-green fw-bold font-monospace px-3 py-2">
+        <i class="fa-solid fa-plus me-1"></i> List New Property
+      </a>
+    </div>
 
-    <div class="table-responsive">
-      <table class="table table-dark table-hover align-middle mb-0 border-secondary border-opacity-25">
-        <thead class="font-monospace text-muted small">
-          <tr>
-            <th>PROPERTY TITLE & TITLE DOC</th>
-            <th>ZONING</th>
-            <th>SIZE</th>
-            <th>CRYPTO PRICE</th>
-            <th>STATUS</th>
-            <th class="text-end">MANAGE</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for land in my_listings %}
-          <tr>
-            <td>
-              <div class="fw-bold"><a href="{% url 'app:land_detail' slug=land.slug %}" class="text-dark text-decoration-none">{{ land.title }}</a></div>
-              <div class="small text-muted font-monospace"><i class="fa-solid fa-file-contract me-1"></i> {{ land.parcel_id }}</div>
-            </td>
-            <td><span class="badge bg-light border border-secondary text-dark">{{ land.get_zoning_type_display }}</span></td>
-            <td class="small font-monospace">{{ land.formatted_size_plots }}</td>
-            <td>
-              <div class="fw-bold text-success font-monospace">{{ land.price_crypto }} {{ land.crypto_currency }}</div>
-              <div class="small text-muted">${{ land.price_usd|floatformat:2 }}</div>
-            </td>
-            <td>
-              <span class="badge badge-status status-{{ land.status }}">{{ land.get_status_display }}</span>
-            </td>
-            <td class="text-end">
-              <div class="btn-group btn-group-sm">
-                <a href="{% url 'app:land_detail' slug=land.slug %}" class="btn btn-glass" title="View"><i class="fa-solid fa-eye"></i></a>
-                <a href="{% url 'app:edit_land' slug=land.slug %}" class="btn btn-glass" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                <a href="{% url 'app:delete_land' slug=land.slug %}" class="btn btn-glass text-danger" title="Delete"><i class="fa-solid fa-trash"></i></a>
+    <div class="row g-4">
+      {% for land in my_listings %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border border-secondary border-opacity-25 rounded-4 shadow-sm overflow-hidden bg-white hover-shadow transition-all">
+          <!-- Property Thumbnail Image with Floating Badges -->
+          <div class="position-relative" style="height: 190px; background-color: #f1f5f9;">
+            <img src="{{ land.get_featured_image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ land.title }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80';">
+            
+            <div class="position-absolute top-0 start-0 p-2 d-flex gap-1 flex-wrap">
+              <span class="badge badge-status status-{{ land.status }} font-monospace shadow-sm">
+                {{ land.get_status_display }}
+              </span>
+            </div>
+
+            <div class="position-absolute top-0 end-0 p-2">
+              <span class="badge bg-dark bg-opacity-75 text-white font-monospace shadow-sm">
+                <i class="fa-solid fa-layer-group me-1 text-success"></i> {{ land.get_zoning_type_display }}
+              </span>
+            </div>
+
+            <div class="position-absolute bottom-0 start-0 w-100 p-2 bg-dark bg-opacity-60 backdrop-blur d-flex justify-content-between align-items-center text-white small font-monospace">
+              <span><i class="fa-solid fa-eye me-1 text-success"></i> {{ land.views_count }} views</span>
+              <span><i class="fa-solid fa-ruler-combined me-1 text-success"></i> {{ land.formatted_size_plots }}</span>
+            </div>
+          </div>
+
+          <!-- Card Content Body -->
+          <div class="card-body p-3 d-flex flex-column justify-content-between">
+            <div>
+              <h5 class="card-title font-monospace fw-bold text-dark fs-6 mb-2 text-truncate" title="{{ land.title }}">
+                <a href="{% url 'app:land_detail' slug=land.slug %}" class="text-dark text-decoration-none hover-success">
+                  {{ land.title }}
+                </a>
+              </h5>
+
+              <div class="small text-muted font-monospace mb-2 text-truncate">
+                <i class="fa-solid fa-location-dot text-success me-1"></i> {{ land.lga|default:land.location }}, {{ land.state }}
               </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" class="text-center py-4 text-muted">
-              You haven't listed any land parcels yet. <a href="{% url 'app:create_land' %}" class="text-success fw-bold">List your first property now</a>.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+              {% if land.parcel_id %}
+              <div class="small text-secondary font-monospace mb-3">
+                <i class="fa-solid fa-file-contract me-1"></i> Doc: <span class="fw-bold text-dark">{{ land.parcel_id }}</span>
+              </div>
+              {% else %}
+              <div class="small text-muted font-monospace mb-3">
+                <i class="fa-solid fa-file-signature me-1"></i> Survey Pending
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Price & Actions Footer -->
+            <div>
+              <div class="p-2 rounded bg-light border border-secondary border-opacity-25 d-flex align-items-center justify-content-between mb-3">
+                <div>
+                  <div class="small text-muted font-monospace" style="font-size: 0.7rem;">LISTING PRICE</div>
+                  <div class="fw-bold text-success font-monospace fs-6 mb-0">{{ land.price_crypto }} {{ land.crypto_currency }}</div>
+                </div>
+                <div class="text-end">
+                  <div class="small text-muted" style="font-size: 0.75rem;">≈ ${{ land.price_usd|floatformat:2 }} USD</div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <a href="{% url 'app:land_detail' slug=land.slug %}" class="btn btn-sm btn-glass flex-fill font-monospace py-1" title="View Property">
+                  <i class="fa-solid fa-eye me-1"></i> View
+                </a>
+                <a href="{% url 'app:edit_land' slug=land.slug %}" class="btn btn-sm btn-outline-success flex-fill font-monospace py-1" title="Edit Listing">
+                  <i class="fa-solid fa-pen me-1"></i> Edit
+                </a>
+                <a href="{% url 'app:delete_land' slug=slug|default:land.slug %}" class="btn btn-sm btn-outline-danger font-monospace py-1" title="Delete Listing" onclick="return confirm('Are you sure you want to delete {{ land.title }}?');">
+                  <i class="fa-regular fa-trash-can"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-5 text-muted bg-light rounded-4 border border-dashed border-secondary border-opacity-50">
+        <i class="fa-solid fa-map-location-dot fs-1 text-secondary mb-3 d-block opacity-50"></i>
+        <h5 class="text-dark fw-bold mb-1">No Land Parcels Listed Yet</h5>
+        <p class="small mb-3 text-muted">Start selling land plots by posting your first property with photos and crypto pricing.</p>
+        <a href="{% url 'app:create_land' %}" class="btn btn-primary-green btn-sm font-monospace fw-bold px-4 py-2">
+          <i class="fa-solid fa-plus me-1"></i> List Your First Property
+        </a>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </div>
