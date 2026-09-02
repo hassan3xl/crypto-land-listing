@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MyApp — Buy & Sell Verified Land with Crypto Escrow{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+  <div class="container">
+    <div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2 rounded-pill mb-3 fw-bold">
+      <i class="fa-solid fa-gem me-1"></i> Crypto Real Estate Marketplace
+    </div>
+    <h1 class="hero-title text-dark">
+      Buy Land with <span class="text-success">Crypto Currency</span>
+    </h1>
+    <p class="hero-subtitle mx-auto">
+      Discover, buy, and sell verified land plots in prime locations. Secure escrow payments using Ethereum, Solana, Bitcoin, and USDT.
+    </p>
+
+    <!-- Quick Search Card -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="p-3 p-md-4 rounded-4" style="background: #ffffff; border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
+          <form action="{% url 'app:land_list' %}" method="GET" class="row g-3 text-start">
+            <div class="col-md-4">
+              <label class="form-label small text-muted font-monospace"><i class="fa-solid fa-magnifying-glass me-1"></i> SEARCH LAND</label>
+              <input type="text" name="q" class="form-control form-control-lg fs-6" placeholder="e.g. Lekki, Abuja, Epe, or C of O No.">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small text-muted font-monospace"><i class="fa-solid fa-layer-group me-1"></i> ZONING CATEGORY</label>
+              <select name="zoning" class="form-select form-select-lg fs-6">
+                <option value="">All Categories</option>
+                {% for code, label in zoning_types %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small text-muted font-monospace"><i class="fa-brands fa-ethereum me-1"></i> CRYPTO CURRENCY</label>
+              <select name="crypto_currency" class="form-select form-select-lg fs-6">
+                <option value="">Any Currency</option>
+                <option value="ETH">ETH (Ethereum)</option>
+                <option value="SOL">SOL (Solana)</option>
+                <option value="BTC">BTC (Bitcoin)</option>
+                <option value="USDT">USDT (Tether)</option>
+              </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary-green w-100 py-3 fw-bold">
+                Search <i class="fa-solid fa-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Stats -->
+    <div class="row g-3 justify-content-center mt-5">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.total_lands }}</div>
+          <div class="stat-label">Active Land Listings</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.verified_deeds }}</div>
+          <div class="stat-label">Verified Title Deeds</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.total_sellers }}</div>
+          <div class="stat-label">Verified Land Sellers</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.completed_txs }}</div>
+          <div class="stat-label">Escrow Transfers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Land Listings Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+      <div>
+        <h2 class="font-monospace text-dark fw-bold mb-1"><i class="fa-solid fa-map text-success me-2"></i> Featured Land Properties</h2>
+        <p class="text-muted mb-0">Handpicked land plots verified for crypto acquisition.</p>
+      </div>
+      <a href="{% url 'app:land_list' %}" class="btn btn-glass mt-3 mt-md-0">
+        View All Plots <i class="fa-solid fa-chevron-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for land in featured_lands %}
+      <div class="col-lg-4 col-md-6">
+        <div class="land-card">
+          <div class="land-card-img-wrapper">
+            {% if land.featured_image %}
+            <img src="{{ land.featured_image.url }}" class="land-card-img" alt="{{ land.title }}">
+            {% else %}
+            <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80" class="land-card-img" alt="Land">
+            {% endif %}
+            <span class="zoning-badge">{{ land.get_zoning_type_display }}</span>
+            {% if land.deed_verified %}
+            <span class="deed-badge"><i class="fa-solid fa-shield-check"></i> Title Verified</span>
+            {% endif %}
+          </div>
+          <div class="land-card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-light border border-secondary border-opacity-25 text-dark small"><i class="fa-solid fa-ruler-combined me-1"></i> {{ land.formatted_size_plots }}</span>
+              <span class="text-success small font-monospace fw-bold"><i class="fa-solid fa-file-contract"></i> {{ land.parcel_id }}</span>
+            </div>
+            <h3 class="land-title"><a href="{% url 'app:land_detail' slug=land.slug %}" class="text-dark text-decoration-none">{{ land.title }}</a></h3>
+            <div class="land-location"><i class="fa-solid fa-location-dot text-danger"></i> {{ land.location }}</div>
+            <div class="price-box d-flex justify-content-between align-items-center">
+              <div>
+                <div class="crypto-price">{{ land.price_crypto }} {{ land.crypto_currency }}</div>
+                <div class="usd-price">≈ ${{ land.price_usd|floatformat:2 }} USD</div>
+              </div>
+              <a href="{% url 'app:land_detail' slug=land.slug %}" class="btn btn-sm btn-primary-green px-3">
+                Inspect Plot
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-5">
+        <div class="p-5 rounded-4 bg-white border border-secondary border-opacity-25 shadow-sm">
+          <i class="fa-solid fa-layer-group text-muted fs-1 mb-3"></i>
+          <h4 class="text-dark">No Featured Land Properties Yet</h4>
+          <p class="text-muted">Check out all available listings or list land for sale with crypto!</p>
+          <a href="{% url 'app:land_list' %}" class="btn btn-primary-green me-2">Browse All Listings</a>
+          {% if user.is_authenticated and user.is_seller %}
+          <a href="{% url 'app:create_land' %}" class="btn btn-glass">List Your Land</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- How Escrow Works Section -->
+<section class="py-5" style="background: #ffffff; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+  <div class="container">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <h2 class="font-monospace text-dark fw-bold mb-2">How Crypto Land Buying Works</h2>
+      <p class="text-muted">A clear 4-step process for secure land purchases using crypto currency.</p>
+    </div>
+
+    <div class="row g-4 text-center">
+      <div class="col-md-3">
+        <div class="p-4 rounded-4 bg-light border border-secondary border-opacity-25 h-100 shadow-sm">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 700;">
+            1
+          </div>
+          <h5 class="text-dark font-monospace fw-bold">Find Land Plot</h5>
+          <p class="small text-muted mb-0">Browse verified land plots and submit a crypto offer in ETH, SOL, BTC, or USDT.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-4 rounded-4 bg-light border border-secondary border-opacity-25 h-100 shadow-sm">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 700;">
+            2
+          </div>
+          <h5 class="text-dark font-monospace fw-bold">Seller Accepts</h5>
+          <p class="small text-muted mb-0">The verified seller accepts your offer and reserves the land plot.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-4 rounded-4 bg-light border border-secondary border-opacity-25 h-100 shadow-sm">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 700;">
+            3
+          </div>
+          <h5 class="text-dark font-monospace fw-bold">Escrow Deposit</h5>
+          <p class="small text-muted mb-0">You deposit crypto funds into platform escrow and submit your transaction receipt.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-4 rounded-4 bg-light border border-secondary border-opacity-25 h-100 shadow-sm">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 700;">
+            4
+          </div>
+          <h5 class="text-dark font-monospace fw-bold">Title & Deed Release</h5>
+          <p class="small text-muted mb-0">Title document (C of O / Deed of Assignment) is verified and escrow funds are released.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 text-center">
+  <div class="container">
+    <div class="p-5 rounded-4 position-relative overflow-hidden shadow-lg" style="background: #ffffff; border: 1px solid var(--border-color);">
+      <div class="position-relative z-1 max-w-700 mx-auto">
+        <h2 class="text-dark font-monospace fw-bold mb-3">Ready to Buy or Sell Land with Crypto?</h2>
+        <p class="text-muted mb-4 fs-5">Join buyers and sellers conducting direct, secure land transactions on MyApp.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+          <a href="{% url 'app:register' %}?role=buyer" class="btn btn-primary-green btn-lg px-4 fs-6">
+            <i class="fa-solid fa-cart-shopping me-2"></i> Register as Buyer
+          </a>
+          <a href="{% url 'app:register' %}?role=seller" class="btn btn-glass btn-lg px-4 fs-6">
+            <i class="fa-solid fa-store me-2"></i> Register as Seller
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

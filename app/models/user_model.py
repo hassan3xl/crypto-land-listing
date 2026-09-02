@@ -1,0 +1,3 @@
+# ad users and profiles, and manage user authentication and authorization. It includes methods for creating, updating, and deleting user accounts, as well as handling password hashing and validation. The model also defines relationships with other models, such as profiles and roles, to facilitate user management within the application.
+# roles should be admin, doctor, patient 
+# add other models files and create the models

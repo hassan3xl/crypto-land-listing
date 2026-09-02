@@ -1,0 +1,168 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Doctors & Approvals | Admin{% endblock %}
+
+{% block main_content %}
+{% include 'app/includes/sidebar.html' %}
+
+<div class="content flex-1 p-6 bg-slate-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">Doctor Applications & Approvals</h1>
+          <p class="text-xs text-slate-500 font-medium">Review applications, approve medical profiles, or register new doctors</p>
+        </div>
+      </div>
+    </div>
+
+    <a href="{% url 'app:admin_create_doctor' %}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create New Doctor
+    </a>
+  </div>
+
+  <!-- Filter & Search Control Panel -->
+  <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
+    <form method="GET" action="{% url 'app:admin_doctors' %}" class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Status Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto">
+        <a href="{% url 'app:admin_doctors' %}?status=all" class="px-4 py-2 rounded-xl text-xs font-bold transition {% if selected_status == 'all' %}bg-indigo-600 text-white shadow-md{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+          All Doctors
+        </a>
+        <a href="{% url 'app:admin_doctors' %}?status=pending" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {% if selected_status == 'pending' %}bg-amber-500 text-white shadow-md{% else %}bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200{% endif %}">
+          <span>Pending</span>
+          <span class="bg-amber-900/30 text-amber-900 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">{{ pending_count }}</span>
+        </a>
+        <a href="{% url 'app:admin_doctors' %}?status=approved" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {% if selected_status == 'approved' %}bg-emerald-600 text-white shadow-md{% else %}bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200{% endif %}">
+          <span>Approved</span>
+          <span class="bg-emerald-900/30 text-emerald-900 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">{{ approved_count }}</span>
+        </a>
+      </div>
+
+      <!-- Search Input -->
+      <div class="flex items-center gap-2 min-w-[280px]">
+        <input
+          type="hidden"
+          name="status"
+          value="{{ selected_status }}"
+        />
+        <input
+          type="text"
+          name="q"
+          value="{{ search_query }}"
+          placeholder="Search by name, email, specialty..."
+          class="w-full px-4 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Doctors Table -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    {% if doctor_profiles %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-700">
+        <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+          <tr>
+            <th class="py-3.5 px-4">Doctor Name</th>
+            <th class="py-3.5 px-4">Email & Phone</th>
+            <th class="py-3.5 px-4">Specialty</th>
+            <th class="py-3.5 px-4">Status</th>
+            <th class="py-3.5 px-4">Applied Date</th>
+            <th class="py-3.5 px-4 text-right">Administrative Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for profile in doctor_profiles %}
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-3">
+                {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="Profile" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                {% else %}
+                <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                  {{ profile.user.first_name|default:profile.user.email|slice:":1"|upper }}
+                </div>
+                {% endif %}
+                <div>
+                  <div class="font-bold text-slate-900 text-xs">Dr. {{ profile.user.get_full_name|default:profile.user.email }}</div>
+                  {% if profile.bio %}
+                  <div class="text-[10px] text-slate-400 truncate max-w-xs">{{ profile.bio|truncatechars:40 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+
+            <td class="py-3.5 px-4">
+              <div class="font-medium text-slate-800">{{ profile.user.email }}</div>
+              <div class="text-[10px] text-slate-400">{{ profile.user.phone|default:"No phone provided" }}</div>
+            </td>
+
+            <td class="py-3.5 px-4">
+              <span class="bg-blue-50 text-blue-700 font-bold px-2.5 py-1 rounded-lg border border-blue-200">
+                {{ profile.get_specialty_display }}
+              </span>
+            </td>
+
+            <td class="py-3.5 px-4">
+              {% if profile.approved %}
+              <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Approved
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-amber-300 animate-pulse">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending Review
+              </span>
+              {% endif %}
+            </td>
+
+            <td class="py-3.5 px-4 text-slate-500 font-medium">
+              {{ profile.applied_at|date:"M d, Y" }}
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <div class="inline-flex items-center gap-2">
+                {% if not profile.approved %}
+                <form method="POST" action="{% url 'app:admin_approve_doctor' profile.user.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-bold shadow-sm transition cursor-pointer">
+                    ✓ Approve
+                  </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{% url 'app:admin_reject_doctor' profile.user.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" onclick="return confirm('Revoke approval status for Dr. {{ profile.user.get_full_name }}?');" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-xl font-bold transition cursor-pointer">
+                    Revoke Approval
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+      <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      </svg>
+      <div class="text-sm font-bold text-slate-700">No Doctors Found</div>
+      <div class="text-xs text-slate-500 mt-1">Try adjusting your filter or search query.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

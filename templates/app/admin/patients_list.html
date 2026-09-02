@@ -1,0 +1,107 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Patients Management | Admin{% endblock %}
+
+{% block main_content %}
+{% include 'app/includes/sidebar.html' %}
+
+<div class="content flex-1 p-6 bg-slate-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">Patients Management</h1>
+          <p class="text-xs text-slate-500 font-medium">View registered hospital patients, onboarding info, and create new patient accounts</p>
+        </div>
+      </div>
+    </div>
+
+    <a href="{% url 'app:admin_create_patient' %}" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create New Patient
+    </a>
+  </div>
+
+  <!-- Search Control Panel -->
+  <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="text-xs font-bold text-slate-700">
+      Total Registered Patients: <span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-md font-extrabold ml-1">{{ total_patients }}</span>
+    </div>
+
+    <form method="GET" action="{% url 'app:admin_patients' %}" class="flex items-center gap-2 min-w-[280px]">
+      <input
+        type="text"
+        name="q"
+        value="{{ search_query }}"
+        placeholder="Search patient name, email, phone..."
+        class="w-full px-4 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+      />
+      <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+        Search
+      </button>
+    </form>
+  </div>
+
+  <!-- Patients Table -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    {% if patients %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-700">
+        <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+          <tr>
+            <th class="py-3.5 px-4">Patient Name</th>
+            <th class="py-3.5 px-4">Email</th>
+            <th class="py-3.5 px-4">Phone</th>
+            <th class="py-3.5 px-4">Address</th>
+            <th class="py-3.5 px-4 text-center">Appointments</th>
+            <th class="py-3.5 px-4 text-right">Date Joined</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for patient in patients %}
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
+                {{ patient.first_name|default:patient.email|slice:":1"|upper }}
+              </div>
+              <div>
+                {{ patient.get_full_name|default:patient.email }}
+                {% if not patient.first_name %}
+                <span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-semibold ml-1">Onboarding Incomplete</span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="py-3.5 px-4 font-medium text-slate-800">{{ patient.email }}</td>
+            <td class="py-3.5 px-4 text-slate-600">{{ patient.phone|default:"—" }}</td>
+            <td class="py-3.5 px-4 text-slate-500 truncate max-w-xs">{{ patient.address|default:"—" }}</td>
+            <td class="py-3.5 px-4 text-center">
+              <span class="bg-indigo-50 text-indigo-700 font-extrabold px-2.5 py-1 rounded-lg border border-indigo-100">
+                {{ patient.appointment_count }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-right text-slate-500 font-medium">
+              {{ patient.date_joined|date:"M d, Y" }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+      <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      </svg>
+      <div class="text-sm font-bold text-slate-700">No Patients Found</div>
+      <div class="text-xs text-slate-500 mt-1">Try adjusting your search query.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

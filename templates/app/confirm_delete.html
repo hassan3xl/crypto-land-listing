@@ -1,0 +1,31 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Confirm Delete —
+MyApp Protocol{% endblock %} {% block content %}
+<div class="container py-5 max-w-600 mx-auto">
+  <div
+    class="p-4 p-md-5 rounded-4 text-center"
+    style="background: var(--bg-card); border: 1px solid var(--border-color)"
+  >
+    <div
+      class="rounded-circle bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 d-inline-flex align-items-center justify-content-center mb-3"
+      style="width: 64px; height: 64px; font-size: 1.8rem"
+    >
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h3 class="font-monospace text-white fw-bold mb-2">Delete {{ type }}?</h3>
+    <p class="text-muted mb-4">
+      Are you sure you want to permanently delete
+      <strong>"{{ object.title }}"</strong>? This action cannot be undone.
+    </p>
+
+    <form method="POST" class="d-flex justify-content-center gap-3">
+      {% csrf_token %}
+      <a href="{% url 'app:seller_dashboard' %}" class="btn btn-glass px-4"
+        >Cancel</a
+      >
+      <button type="submit" class="btn btn-danger px-4 font-monospace fw-bold">
+        <i class="fa-solid fa-trash me-1"></i> Yes, Delete Property
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

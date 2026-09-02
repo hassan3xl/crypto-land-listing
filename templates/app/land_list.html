@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Browse Land Listings — MyApp{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <h1 class="font-monospace text-dark fw-bold mb-1 fs-2"><i class="fa-solid fa-earth-africa text-success me-2"></i> Land Marketplace</h1>
+      <p class="text-muted mb-0">Discover verified plots of land across Nigerian States & LGAs available for crypto purchase.</p>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
+      <span class="badge bg-white border border-secondary text-success px-3 py-2 fs-6 shadow-sm">
+        <i class="fa-solid fa-list-check me-1"></i> {{ results_count }} Plots Found
+      </span>
+      {% if user.is_authenticated and user.is_seller %}
+      <a href="{% url 'app:create_land' %}" class="btn btn-primary-green">
+        <i class="fa-solid fa-plus me-1"></i> List New Land Plot
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Filter Sidebar -->
+    <div class="col-lg-3">
+      <div class="p-3 p-md-4 rounded-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color); position: sticky; top: 90px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="text-dark font-monospace mb-0 fw-bold"><i class="fa-solid fa-sliders me-2 text-success"></i> Filter Land</h5>
+          <a href="{% url 'app:land_list' %}" class="small text-success text-decoration-none fw-bold">Reset</a>
+        </div>
+
+        <form method="GET" action="{% url 'app:land_list' %}">
+          <!-- Keyword -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">KEYWORD / TITLE NO.</label>
+            {{ filter_form.q }}
+          </div>
+
+          <!-- Nigerian State Filter -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">NIGERIAN STATE</label>
+            {{ filter_form.state }}
+          </div>
+
+          <!-- LGA Filter -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">LOCAL GOVERNMENT (LGA)</label>
+            {{ filter_form.lga }}
+          </div>
+
+          <!-- Zoning -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">ZONING CATEGORY</label>
+            {{ filter_form.zoning }}
+          </div>
+
+          <!-- Crypto Currency -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">ACCEPTING CRYPTO</label>
+            {{ filter_form.crypto_currency }}
+          </div>
+
+          <!-- Price Range (USD) -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">PRICE RANGE (USD)</label>
+            <div class="row g-2">
+              <div class="col-6">{{ filter_form.min_price }}</div>
+              <div class="col-6">{{ filter_form.max_price }}</div>
+            </div>
+          </div>
+
+          <!-- Minimum Size -->
+          <div class="mb-3">
+            <label class="form-label small text-muted font-monospace">MIN SIZE (SQ METERS)</label>
+            {{ filter_form.min_size }}
+          </div>
+
+          <!-- Sort Order -->
+          <div class="mb-4">
+            <label class="form-label small text-muted font-monospace">SORT BY</label>
+            {{ filter_form.sort }}
+          </div>
+
+          <button type="submit" class="btn btn-primary-green w-100 py-2 font-monospace fw-bold">
+            <i class="fa-solid fa-filter me-1"></i> Apply Filters
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Properties Grid -->
+    <div class="col-lg-9">
+      <div class="row g-4">
+        {% for land in lands %}
+        <div class="col-md-6 col-xl-4">
+          <div class="land-card">
+            <div class="land-card-img-wrapper">
+              {% if land.featured_image %}
+              <img src="{{ land.featured_image.url }}" class="land-card-img" alt="{{ land.title }}">
+              {% else %}
+              <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80" class="land-card-img" alt="Land">
+              {% endif %}
+              <span class="zoning-badge">{{ land.get_zoning_type_display }}</span>
+              {% if land.deed_verified %}
+              <span class="deed-badge"><i class="fa-solid fa-shield-check"></i> Title Verified</span>
+              {% endif %}
+              
+              {% if user.is_authenticated %}
+              <a href="{% url 'app:toggle_save_land' land_id=land.id %}" class="save-btn {% if land.id in saved_land_ids %}active{% endif %}" title="Save Plot">
+                <i class="fa-solid fa-heart"></i>
+              </a>
+              {% endif %}
+            </div>
+
+            <div class="land-card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-light border border-secondary border-opacity-25 text-dark small">
+                  <i class="fa-solid fa-ruler-combined me-1"></i> {{ land.formatted_size_plots }}
+                </span>
+                <span class="text-success small font-monospace fw-bold" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ land.parcel_id }}">
+                  <i class="fa-solid fa-file-contract"></i> {{ land.parcel_id }}
+                </span>
+              </div>
+              
+              <h3 class="land-title">
+                <a href="{% url 'app:land_detail' slug=land.slug %}" class="text-dark text-decoration-none">{{ land.title }}</a>
+              </h3>
+              <div class="land-location">
+                <i class="fa-solid fa-location-dot text-danger"></i> {{ land.location }}{% if land.lga %}, {{ land.lga }}{% endif %}{% if land.state %}, {{ land.state }}{% endif %}
+              </div>
+              
+              <div class="price-box d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="crypto-price">{{ land.price_crypto }} {{ land.crypto_currency }}</div>
+                  <div class="usd-price">≈ ${{ land.price_usd|floatformat:2 }} USD</div>
+                </div>
+                <a href="{% url 'app:land_detail' slug=land.slug %}" class="btn btn-sm btn-primary-green px-3">
+                  Inspect Plot
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+          <div class="p-5 rounded-4 bg-white border border-secondary border-opacity-25 shadow-sm">
+            <i class="fa-solid fa-magnifying-glass text-muted fs-1 mb-3"></i>
+            <h4 class="text-dark">No Land Listings Found</h4>
+            <p class="text-muted">Try adjusting your State, LGA, or price filters to view available plots.</p>
+            <a href="{% url 'app:land_list' %}" class="btn btn-primary-green">Reset Search Filters</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const filterState = document.getElementById('filter_state');
+  const filterLga = document.getElementById('filter_lga');
+
+  if (filterState && filterLga) {
+    filterState.addEventListener('change', function() {
+      const selectedState = this.value;
+      filterLga.innerHTML = '<option value="">Loading LGAs...</option>';
+
+      if (!selectedState) {
+        filterLga.innerHTML = '<option value="">All LGAs</option>';
+        return;
+      }
+
+      fetch(`/api/lgas/?state=${encodeURIComponent(selectedState)}`)
+        .then(response => response.json())
+        .then(data => {
+          filterLga.innerHTML = '<option value="">All LGAs</option>';
+          data.lgas.forEach(lga => {
+            const opt = document.createElement('option');
+            opt.value = lga;
+            opt.textContent = lga;
+            filterLga.appendChild(opt);
+          });
+        })
+        .catch(err => {
+          console.error('Error loading LGAs:', err);
+          filterLga.innerHTML = '<option value="">All LGAs</option>';
+        });
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Account — MyApp{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="p-4 p-md-5 rounded-4 shadow-lg" style="background: #ffffff; border: 1px solid var(--border-color);">
+        <div class="text-center mb-4">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-inline-flex align-items-center justify-content-center mb-2" style="width: 54px; height: 54px; font-size: 1.5rem;">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <h3 class="font-monospace text-dark fw-bold">Create Account</h3>
+          <p class="text-muted small">Register as a Land Buyer or Land Seller on MyApp.</p>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+          
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">USERNAME *</label>
+              {{ form.username }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">EMAIL ADDRESS *</label>
+              {{ form.email }}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">FIRST NAME</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">LAST NAME</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace">ACCOUNT ROLE *</label>
+            {{ form.role }}
+            <div class="form-text small text-muted">Choose whether you want to browse/buy land or list land for sale.</div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">PASSWORD *</label>
+              {{ form.password1 }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">CONFIRM PASSWORD *</label>
+              {{ form.password2 }}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-green w-100 py-3 font-monospace fw-bold fs-6 mb-3">
+            Complete Registration
+          </button>
+
+          <div class="text-center small text-muted">
+            Already have an account? <a href="{% url 'app:login' %}" class="text-success text-decoration-none fw-bold">Log In</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

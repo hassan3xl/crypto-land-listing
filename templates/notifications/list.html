@@ -1,0 +1,47 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Notifications —
+MyApp Protocol{% endblock %} {% block content %}
+<div class="container py-4 max-w-800 mx-auto">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="font-monospace text-white fw-bold mb-1">
+        <i class="fa-regular fa-bell text-cyan me-2"></i> Notifications
+      </h2>
+      <p class="text-muted mb-0">
+        Stay updated on land offers, escrow statuses, and platform updates.
+      </p>
+    </div>
+    {% if unread_count > 0 %}
+    <form action="{% url 'notifications:mark_all_read' %}" method="POST">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-glass font-monospace">
+        <i class="fa-solid fa-check-double me-1"></i> Mark All as Read
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div
+    class="list-group rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-25"
+  >
+    {% for n in notifications %}
+    <a
+      href="{% url 'notifications:detail' notification_id=n.id %}"
+      class="list-group-item list-group-item-action bg-dark text-white p-3 border-secondary border-opacity-25 {% if not n.is_read %}border-start border-cyan border-4{% endif %}"
+    >
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <h6 class="mb-0 font-monospace text-cyan fw-bold">{{ n.title }}</h6>
+        <small class="text-muted font-monospace"
+          >{{ n.created_at|timesince }} ago</small
+        >
+      </div>
+      <p class="mb-1 text-light small">{{ n.message }}</p>
+    </a>
+    {% empty %}
+    <div class="p-5 text-center bg-dark text-muted">
+      <i class="fa-regular fa-bell-slash fs-1 mb-3"></i>
+      <p class="mb-0">No notifications yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

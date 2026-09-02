@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ land.title }} — MyApp{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'app:home' %}" class="text-success text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'app:land_list' %}" class="text-success text-decoration-none">Land Marketplace</a></li>
+      <li class="breadcrumb-item active text-dark" aria-current="page">{{ land.title }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Left Column: Media & Specifications -->
+    <div class="col-lg-8">
+      <!-- Main Featured Image -->
+      <div class="rounded-4 overflow-hidden mb-4 position-relative border border-secondary border-opacity-25 shadow-sm" style="max-height: 480px; background: #e2e8f0;">
+        {% if land.featured_image %}
+        <img src="{{ land.featured_image.url }}" class="w-100 h-100 object-fit-cover" style="min-height: 380px; max-height:480px;" alt="{{ land.title }}">
+        {% else %}
+        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80" class="w-100 h-100 object-fit-cover" style="min-height: 380px; max-height:480px;" alt="Land Image">
+        {% endif %}
+
+        <div class="position-absolute top-0 start-0 p-3 d-flex gap-2">
+          <span class="zoning-badge position-static">{{ land.get_zoning_type_display }}</span>
+          {% if land.deed_verified %}
+          <span class="deed-badge position-static"><i class="fa-solid fa-shield-check"></i> Title Deed Verified</span>
+          {% endif %}
+        </div>
+
+        <div class="position-absolute bottom-0 end-0 p-3">
+          <span class="badge bg-white bg-opacity-90 text-dark font-monospace shadow-sm">
+            <i class="fa-solid fa-eye me-1"></i> {{ land.views_count }} Views
+          </span>
+        </div>
+      </div>
+
+      <!-- Land Header Info -->
+      <div class="p-4 rounded-4 mb-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-3">
+          <div>
+            <h1 class="text-dark font-monospace fw-bold mb-2">{{ land.title }}</h1>
+            <div class="text-muted fs-6">
+              <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ land.location }}{% if land.lga %}, LGA: {{ land.lga }}{% endif %}{% if land.state %}, {{ land.state }} State{% endif %}
+            </div>
+          </div>
+          <div class="mt-3 mt-md-0 text-md-end">
+            <span class="badge bg-light border border-secondary text-success font-monospace px-3 py-2 fs-6">
+              Title / Survey No: {{ land.parcel_id }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Specs Grid -->
+        <div class="row g-3 my-2 text-center">
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
+              <div class="small text-muted font-monospace"><i class="fa-solid fa-ruler-combined text-success me-1"></i> LAND AREA</div>
+              <div class="fs-5 fw-bold text-dark mt-1">{{ land.formatted_size_plots }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
+              <div class="small text-muted font-monospace"><i class="fa-solid fa-layer-group text-success me-1"></i> ZONING</div>
+              <div class="fs-5 fw-bold text-dark mt-1">{{ land.get_zoning_type_display }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
+              <div class="small text-muted font-monospace"><i class="fa-solid fa-compass text-success me-1"></i> LATITUDE</div>
+              <div class="fs-6 fw-bold text-dark mt-1 font-monospace">{{ land.latitude|default:"N/A" }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-25">
+              <div class="small text-muted font-monospace"><i class="fa-solid fa-compass text-success me-1"></i> LONGITUDE</div>
+              <div class="fs-6 fw-bold text-dark mt-1 font-monospace">{{ land.longitude|default:"N/A" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Description -->
+        <h5 class="text-dark font-monospace mt-4 mb-2 fw-bold">Property Description</h5>
+        <p class="text-secondary leading-relaxed" style="white-space: pre-line;">{{ land.description }}</p>
+
+        {% if land.address %}
+        <h5 class="text-dark font-monospace mt-4 mb-2 fw-bold">Physical / Street Address</h5>
+        <p class="text-dark font-monospace small bg-light p-3 rounded border border-secondary border-opacity-25">{{ land.address }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Seller Verification Box -->
+      <div class="p-4 rounded-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color);">
+        <h5 class="text-dark font-monospace mb-3 fw-bold"><i class="fa-solid fa-user-check me-2 text-success"></i> Land Seller Information</h5>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-3">
+            {% if land.seller.get_avatar_url %}
+            <img src="{{ land.seller.get_avatar_url }}" class="rounded-circle" width="54" height="54" alt="Seller">
+            {% else %}
+            <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width:54px; height:54px; font-size:1.2rem;">
+              {{ land.seller.username|slice:":1"|upper }}
+            </div>
+            {% endif %}
+            <div>
+              <h6 class="text-dark mb-1 fw-bold">{{ land.seller.first_name }} {{ land.seller.last_name|default:land.seller.username }}</h6>
+              <div class="small text-muted">
+                {% if land.seller.is_verified_seller %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-30"><i class="fa-solid fa-shield-check"></i> Verified Land Seller</span>
+                {% else %}
+                <span class="badge bg-secondary">Registered Seller</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <div class="small text-muted font-monospace">SELLER WALLET</div>
+            <div class="small text-success font-monospace fw-bold" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+              {{ land.seller.crypto_wallet_address|default:"Verified Escrow Address" }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Crypto Pricing & Buy Action Card -->
+    <div class="col-lg-4">
+      <div class="p-4 rounded-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color); position: sticky; top: 90px;">
+        <div class="small text-muted font-monospace mb-1"><i class="fa-solid fa-tag text-success me-1"></i> LISTING PRICE</div>
+        
+        <div class="d-flex align-items-baseline gap-2 mb-1">
+          <span class="crypto-price fs-2">{{ land.price_crypto }} {{ land.crypto_currency }}</span>
+        </div>
+        <div class="usd-price fs-6 mb-4">≈ ${{ land.price_usd|floatformat:2 }} USD</div>
+
+        <div class="p-3 rounded-3 mb-4" style="background: #ecfdf5; border: 1px solid #a7f3d0;">
+          <div class="small text-success font-monospace mb-1 fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> ESCROW PROTECTED</div>
+          <p class="small text-muted mb-0">
+            Crypto funds are locked in platform escrow until land title document transfer is officially confirmed.
+          </p>
+        </div>
+
+        {% if user.is_authenticated %}
+          {% if user.is_seller and land.seller == user %}
+            <!-- Seller Control Buttons -->
+            <div class="d-flex flex-column gap-2 mb-3">
+              <a href="{% url 'app:edit_land' slug=land.slug %}" class="btn btn-glass py-2 font-monospace">
+                <i class="fa-solid fa-pen-to-square me-1"></i> Edit Property Details
+              </a>
+              <a href="{% url 'app:delete_land' slug=land.slug %}" class="btn btn-outline-danger py-2 font-monospace">
+                <i class="fa-solid fa-trash me-1"></i> Remove Listing
+              </a>
+            </div>
+          {% else %}
+            <!-- Buyer Offer Action -->
+            {% if existing_offer %}
+              <div class="alert alert-info border-0 text-dark p-3 rounded mb-3" style="background: #f1f5f9;">
+                <div class="fw-bold font-monospace mb-1"><i class="fa-solid fa-clock-history me-1"></i> Your Active Offer</div>
+                <div class="small mb-1">Price: {{ existing_offer.offer_price_crypto }} {{ existing_offer.crypto_currency }}</div>
+                <div class="small">Status: <span class="badge badge-status status-{{ existing_offer.status }}">{{ existing_offer.get_status_display }}</span></div>
+              </div>
+              <a href="{% url 'app:buyer_dashboard' %}" class="btn btn-primary-green w-100 py-3 font-monospace fw-bold mb-3">
+                <i class="fa-solid fa-wallet me-1"></i> Track Offer in Dashboard
+              </a>
+            {% else %}
+              <button type="button" class="btn btn-primary-green w-100 py-3 font-monospace fw-bold fs-6 mb-3" data-bs-toggle="modal" data-bs-target="#offerModal">
+                <i class="fa-solid fa-cart-shopping me-2"></i> Submit Crypto Offer
+              </button>
+            {% endif %}
+
+            <!-- Save Bookmark Button -->
+            <a href="{% url 'app:toggle_save_land' land_id=land.id %}" class="btn btn-glass w-100 py-2 font-monospace">
+              {% if is_saved %}
+              <i class="fa-solid fa-heart text-pink me-1"></i> Saved to Favorites
+              {% else %}
+              <i class="fa-regular fa-heart me-1"></i> Save Property
+              {% endif %}
+            </a>
+          {% endif %}
+
+        {% else %}
+          <!-- Unauthenticated Call to Action -->
+          <a href="{% url 'app:login' %}?next={{ request.path }}" class="btn btn-primary-green w-100 py-3 font-monospace fw-bold mb-2">
+            Log In to Buy Land with Crypto
+          </a>
+          <a href="{% url 'app:register' %}?role=buyer" class="btn btn-glass w-100 py-2 font-monospace text-center">
+            Create Buyer Account
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Crypto Offer Modal -->
+{% if user.is_authenticated and user.is_buyer %}
+<div class="modal fade" id="offerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-white text-dark border border-secondary border-opacity-30 rounded-4 shadow-lg">
+      <div class="modal-header border-secondary border-opacity-25">
+        <h5 class="modal-title font-monospace fw-bold text-dark"><i class="fa-solid fa-coins text-success me-2"></i> Submit Crypto Land Offer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{% url 'app:submit_offer' slug=land.slug %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="p-3 rounded bg-light mb-3 border border-secondary border-opacity-25">
+            <div class="small text-muted font-monospace">PROPERTY</div>
+            <div class="fw-bold text-success">{{ land.title }}</div>
+            <div class="small text-muted">Asking Price: {{ land.price_crypto }} {{ land.crypto_currency }} (~${{ land.price_usd|floatformat:2 }})</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace small">YOUR OFFER PRICE ({{ land.crypto_currency }})</label>
+            {{ offer_form.offer_price_crypto }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace small">ESTIMATED USD VALUE ($)</label>
+            {{ offer_form.offer_price_usd }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace small">YOUR CRYPTO WALLET ADDRESS</label>
+            {{ offer_form.buyer_wallet_address }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace small">MESSAGE / ESCROW NOTES</label>
+            {{ offer_form.notes }}
+          </div>
+
+          <input type="hidden" name="crypto_currency" value="{{ land.crypto_currency }}">
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-glass" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-green fw-bold">Submit Binding Offer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const offerCryptoInput = document.getElementById('id_offer_price_crypto');
+  const offerUsdInput = document.getElementById('id_offer_price_usd');
+  const cryptoCurrency = "{{ land.crypto_currency }}";
+
+  let exchangeRates = {
+    'ETH': 3200.00,
+    'SOL': 145.00,
+    'BTC': 64000.00,
+    'USDT': 1.00
+  };
+
+  fetch('/api/exchange-rates/')
+    .then(r => r.json())
+    .then(d => {
+      if (d.rates) {
+        exchangeRates = d.rates;
+        calculateOfferUsd();
+      }
+    });
+
+  function calculateOfferUsd() {
+    if (!offerCryptoInput || !offerUsdInput) return;
+    const cryptoVal = parseFloat(offerCryptoInput.value);
+    const rate = exchangeRates[cryptoCurrency] || 1.0;
+
+    if (!isNaN(cryptoVal) && cryptoVal > 0) {
+      offerUsdInput.value = (cryptoVal * rate).toFixed(2);
+    }
+  }
+
+  if (offerCryptoInput) {
+    offerCryptoInput.addEventListener('input', calculateOfferUsd);
+  }
+});
+</script>
+{% endblock %}

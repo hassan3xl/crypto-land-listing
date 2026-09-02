@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile & Wallet Settings — MyApp{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="p-4 p-md-5 rounded-4 shadow-lg" style="background: #ffffff; border: 1px solid var(--border-color);">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; font-size: 1.4rem;">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div>
+            <h3 class="font-monospace text-dark fw-bold mb-0">Profile & Wallet Settings</h3>
+            <p class="text-muted small mb-0">Manage your crypto wallet addresses and personal credentials.</p>
+          </div>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">FIRST NAME</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">LAST NAME</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace">EMAIL ADDRESS</label>
+            {{ form.email }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace">PRIMARY CRYPTO WALLET ADDRESS</label>
+            {{ form.crypto_wallet_address }}
+            <div class="form-text small text-muted">Ethereum (0x...), Solana, or Bitcoin address to send/receive escrow payments.</div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">PREFERRED CURRENCY</label>
+              {{ form.preferred_currency }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">PHONE / CONTACT</label>
+              {{ form.phone }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label font-monospace">BIO / COMPANY DETAILS</label>
+            {{ form.bio }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-3">
+            <a href="{% url 'app:home' %}" class="btn btn-glass px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary-green px-5 fw-bold">
+              Save Profile Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

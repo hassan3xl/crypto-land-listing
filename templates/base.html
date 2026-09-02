@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MyApp — Crypto Land Marketplace{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Crypto Live Market Rates Ticker Bar -->
+  <div class="crypto-ticker-bar">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3 overflow-x-auto py-1">
+        <span class="fw-bold text-success"><i class="fa-solid fa-chart-line me-1"></i> LIVE RATES:</span>
+        <span class="crypto-badge-pill"><i class="fa-brands fa-ethereum text-info"></i> 1 ETH = ${{ crypto_rates.ETH|floatformat:2 }} USD</span>
+        <span class="crypto-badge-pill"><i class="fa-solid fa-bolt text-warning"></i> 1 SOL = ${{ crypto_rates.SOL|floatformat:2 }} USD</span>
+        <span class="crypto-badge-pill"><i class="fa-brands fa-bitcoin text-warning"></i> 1 BTC = ${{ crypto_rates.BTC|floatformat:2 }} USD</span>
+        <span class="crypto-badge-pill"><i class="fa-solid fa-dollar-sign text-success"></i> 1 USDT = $1.00 USD</span>
+      </div>
+      <div class="d-none d-md-block text-muted small fw-semibold">
+        <i class="fa-solid fa-shield-halved text-success me-1"></i> Verified Escrow Protected
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'app:home' %}">
+        <i class="fa-solid fa-cubes-stacked text-success"></i> MyApp
+      </a>
+      
+      <button class="navbar-toggler border-0 text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+        <i class="fa-solid fa-bars fs-4"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 align-items-center">
+          <li class="nav-item">
+            <a class="nav-link text-dark fw-semibold" href="{% url 'app:land_list' %}">
+              <i class="fa-solid fa-map-location-dot me-1 text-success"></i> Browse Land Listings
+            </a>
+          </li>
+          {% if user.is_authenticated and user.is_seller %}
+          <li class="nav-item">
+            <a class="nav-link text-warning fw-bold" href="{% url 'app:create_land' %}">
+              <i class="fa-solid fa-plus-circle me-1"></i> List New Land
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+
+        <div class="d-flex align-items-center gap-3">
+          {% if user.is_authenticated %}
+            <!-- Notifications Bell -->
+            <div class="dropdown">
+              <button class="btn btn-glass position-relative py-2 px-3" type="button" data-bs-toggle="dropdown">
+                <i class="fa-regular fa-bell text-dark"></i>
+                {% if unread_notifications_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ unread_notifications_count }}
+                </span>
+                {% endif %}
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end p-2 shadow-lg border-0" style="min-width: 280px;">
+                <li><h6 class="dropdown-header text-success fw-bold">Notifications</h6></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item small" href="{% url 'notifications:list' %}">View All Notifications</a></li>
+              </ul>
+            </div>
+
+            <!-- User Role Badge & Dropdown -->
+            <div class="dropdown">
+              <button class="btn btn-glass d-flex align-items-center gap-2 py-1 pe-3 ps-2" type="button" data-bs-toggle="dropdown">
+                {% if user.get_avatar_url %}
+                <img src="{{ user.get_avatar_url }}" class="rounded-circle" width="30" height="30" alt="Avatar">
+                {% else %}
+                <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 12px;">
+                  {{ user.username|slice:":1"|upper }}
+                </div>
+                {% endif %}
+                <span class="fw-bold text-dark">{{ user.first_name|default:user.username }}</span>
+                <span class="badge bg-secondary text-uppercase" style="font-size: 0.65rem;">{{ user.get_role_display }}</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                {% if user.is_admin_user %}
+                <li><a class="dropdown-item text-success fw-bold" href="{% url 'app:admin_dashboard' %}"><i class="fa-solid fa-user-shield me-2"></i> Admin Panel</a></li>
+                {% endif %}
+                {% if user.is_seller %}
+                <li><a class="dropdown-item fw-semibold" href="{% url 'app:seller_dashboard' %}"><i class="fa-solid fa-store me-2"></i> Seller Hub</a></li>
+                {% endif %}
+                {% if user.is_buyer %}
+                <li><a class="dropdown-item fw-semibold" href="{% url 'app:buyer_dashboard' %}"><i class="fa-solid fa-wallet me-2"></i> Buyer Dashboard</a></li>
+                {% endif %}
+                <li><a class="dropdown-item" href="{% url 'app:profile' %}"><i class="fa-solid fa-user-gear me-2"></i> Profile & Wallet</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger fw-semibold" href="{% url 'app:logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a></li>
+              </ul>
+            </div>
+
+          {% else %}
+            <a href="{% url 'app:login' %}" class="btn btn-glass">Log In</a>
+            <a href="{% url 'app:register' %}" class="btn btn-primary-green">Get Started</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Messages / Flash Alerts -->
+  <div class="container mt-3">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show border-0 shadow-md text-dark" role="alert" style="background-color: #ffffff; border-left: 4px solid var(--primary-green) !important;">
+          <i class="fa-solid fa-circle-info me-2 text-success"></i> {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Main Body Content -->
+  <main class="flex-grow-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <a class="navbar-brand mb-3" href="{% url 'app:home' %}">
+            <i class="fa-solid fa-cubes-stacked text-success"></i> MyApp
+          </a>
+          <p class="small text-muted mb-3">
+            The premier crypto land marketplace. Buy, sell, and escrow verified land parcels using Ethereum, Solana, Bitcoin, and USDT.
+          </p>
+          <div class="d-flex gap-3">
+            <a href="#" class="text-muted"><i class="fa-brands fa-twitter fs-5"></i></a>
+            <a href="#" class="text-muted"><i class="fa-brands fa-discord fs-5"></i></a>
+            <a href="#" class="text-muted"><i class="fa-brands fa-github fs-5"></i></a>
+            <a href="#" class="text-muted"><i class="fa-brands fa-telegram fs-5"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-6">
+          <h6 class="text-dark mb-3 font-monospace fw-bold">MARKETPLACE</h6>
+          <ul class="list-unstyled small d-flex flex-column gap-2">
+            <li><a href="{% url 'app:land_list' %}" class="text-muted text-decoration-none">All Land Listings</a></li>
+            <li><a href="{% url 'app:land_list' %}?zoning=residential" class="text-muted text-decoration-none">Residential Plots</a></li>
+            <li><a href="{% url 'app:land_list' %}?zoning=commercial" class="text-muted text-decoration-none">Commercial Sites</a></li>
+            <li><a href="{% url 'app:land_list' %}?zoning=agricultural" class="text-muted text-decoration-none">Agricultural Acres</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-6">
+          <h6 class="text-dark mb-3 font-monospace fw-bold">ROLES</h6>
+          <ul class="list-unstyled small d-flex flex-column gap-2">
+            <li><a href="{% url 'app:register' %}?role=buyer" class="text-muted text-decoration-none">Register as Buyer</a></li>
+            <li><a href="{% url 'app:register' %}?role=seller" class="text-muted text-decoration-none">List Land as Seller</a></li>
+            <li><a href="{% url 'app:login' %}" class="text-muted text-decoration-none">Account Login</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4">
+          <h6 class="text-dark mb-3 font-monospace fw-bold">ESCROW SAFETY</h6>
+          <p class="small text-muted mb-2">
+            Property transactions utilize secure escrow payments. Title deeds are verified with official land registry records before release.
+          </p>
+          <div class="p-2 rounded bg-light border border-secondary border-opacity-25 small font-monospace text-success fw-semibold">
+            <i class="fa-solid fa-lock me-1"></i> Escrow Address: 0x71C7...976F
+          </div>
+        </div>
+      </div>
+      <hr class="my-4 border-secondary border-opacity-25">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted">
+        <div>&copy; 2026 MyApp. All rights reserved.</div>
+        <div>Crypto Real Estate Marketplace.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

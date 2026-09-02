@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buyer Dashboard — MyApp{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <h1 class="font-monospace text-dark fw-bold mb-1 fs-2"><i class="fa-solid fa-wallet text-success me-2"></i> Buyer Dashboard</h1>
+      <p class="text-muted mb-0">Manage your crypto land offers, active escrow contracts, and saved properties.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+      <a href="{% url 'app:land_list' %}" class="btn btn-primary-green">
+        <i class="fa-solid fa-magnifying-glass me-1"></i> Browse More Land
+      </a>
+    </div>
+  </div>
+
+  <!-- Buyer Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-number">{{ my_offers.count }}</div>
+        <div class="stat-label">Total Land Offers</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-number">{{ saved_lands.count }}</div>
+        <div class="stat-label">Saved Favorites</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-number text-success">
+          {{ active_offers_count }}
+        </div>
+        <div class="stat-label">Active Escrow Contracts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offers Table Card -->
+  <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: #ffffff; border: 1px solid var(--border-color);">
+    <h4 class="font-monospace text-dark fw-bold mb-3"><i class="fa-solid fa-file-contract text-success me-2"></i> My Land Purchase Contracts</h4>
+
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0 border-secondary border-opacity-25">
+        <thead class="font-monospace text-muted small">
+          <tr>
+            <th>PROPERTY & TITLE DOC</th>
+            <th>SELLER</th>
+            <th>OFFER PRICE</th>
+            <th>STATUS</th>
+            <th>DATE SUBMITTED</th>
+            <th class="text-end">ACTION / PAYMENT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in my_offers %}
+          <tr>
+            <td>
+              <div class="fw-bold"><a href="{% url 'app:land_detail' slug=tx.land.slug %}" class="text-dark text-decoration-none">{{ tx.land.title }}</a></div>
+              <div class="small text-muted font-monospace"><i class="fa-solid fa-location-dot me-1"></i> {{ tx.land.location }} | Doc: {{ tx.land.parcel_id }}</div>
+            </td>
+            <td>
+              <div class="small text-dark fw-semibold">{{ tx.seller.first_name }} {{ tx.seller.last_name|default:tx.seller.username }}</div>
+              <div class="small text-muted font-monospace" style="max-width: 120px; overflow: hidden; text-overflow: ellipsis;">{{ tx.seller.crypto_wallet_address|default:"Seller Wallet" }}</div>
+            </td>
+            <td>
+              <div class="fw-bold text-success font-monospace">{{ tx.offer_price_crypto }} {{ tx.crypto_currency }}</div>
+              <div class="small text-muted">≈ ${{ tx.offer_price_usd|floatformat:2 }} USD</div>
+            </td>
+            <td>
+              <span class="badge badge-status status-{{ tx.status }}">
+                {{ tx.get_status_display }}
+              </span>
+              {% if tx.tx_hash %}
+              <div class="small text-muted font-monospace mt-1" style="max-width:140px; overflow:hidden; text-overflow:ellipsis;" title="{{ tx.tx_hash }}">
+                Tx: {{ tx.tx_hash|slice:":10" }}...
+              </div>
+              {% endif %}
+            </td>
+            <td class="small text-muted font-monospace">
+              {{ tx.created_at|date:"M d, Y" }}
+            </td>
+            <td class="text-end">
+              {% if tx.status == 'accepted' or tx.status == 'payment_pending' %}
+                <button type="button" class="btn btn-sm btn-primary-green fw-bold font-monospace" data-bs-toggle="modal" data-bs-target="#payModal{{ tx.transaction_id }}">
+                  <i class="fa-solid fa-link me-1"></i> Submit Payment Receipt
+                </button>
+
+                <!-- Payment Receipt Modal for this Tx -->
+                <div class="modal fade text-start" id="payModal{{ tx.transaction_id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content bg-white text-dark border border-secondary border-opacity-30 rounded-4 shadow-lg">
+                      <div class="modal-header border-secondary border-opacity-25">
+                        <h5 class="modal-title font-monospace fw-bold text-dark"><i class="fa-solid fa-vault text-success me-2"></i> Submit Payment Transaction Hash</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <form action="{% url 'app:submit_payment_hash' transaction_id=tx.transaction_id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                          <p class="small text-muted mb-3">
+                            Please send <strong>{{ tx.offer_price_crypto }} {{ tx.crypto_currency }}</strong> to the official platform Escrow Wallet Address below:
+                          </p>
+
+                          <div class="p-3 rounded bg-light mb-3 border border-success border-opacity-30">
+                            <div class="small text-success font-monospace mb-1 fw-bold">ESCROW WALLET ADDRESS</div>
+                            <div class="fw-bold font-monospace text-dark text-break user-select-all fs-6">
+                              {{ tx.escrow_wallet_address }}
+                            </div>
+                          </div>
+
+                          <div class="mb-3">
+                            <label class="form-label font-monospace small">ENTER TRANSACTION HASH (TX HASH) *</label>
+                            <input type="text" name="tx_hash" class="form-control font-monospace" placeholder="0x..." required>
+                            <div class="form-text small text-muted">Paste the transaction hash from your wallet explorer.</div>
+                          </div>
+                        </div>
+                        <div class="modal-footer border-secondary border-opacity-25">
+                          <button type="button" class="btn btn-glass" data-bs-dismiss="modal">Close</button>
+                          <button type="submit" class="btn btn-primary-green fw-bold">Verify & Lock Escrow</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+              {% elif tx.status == 'escrow_locked' %}
+                <span class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-40 p-2 font-monospace">
+                  <i class="fa-solid fa-spinner fa-spin me-1"></i> Awaiting Admin Deed Audit
+                </span>
+              {% elif tx.status == 'completed' %}
+                <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-40 p-2 font-monospace">
+                  <i class="fa-solid fa-certificate me-1"></i> Title Transferred
+                </span>
+              {% else %}
+                <a href="{% url 'app:land_detail' slug=tx.land.slug %}" class="btn btn-sm btn-glass">View Land</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              You haven't submitted any crypto land offers yet. <a href="{% url 'app:land_list' %}" class="text-success fw-bold">Browse lands for sale</a>.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Saved Lands Grid -->
+  {% if saved_lands %}
+  <h4 class="font-monospace text-dark fw-bold mb-3"><i class="fa-solid fa-heart text-pink me-2"></i> Saved Wishlist Lands</h4>
+  <div class="row g-4 mb-5">
+    {% for item in saved_lands %}
+    <div class="col-md-4">
+      <div class="land-card">
+        <div class="land-card-body">
+          <h5 class="land-title"><a href="{% url 'app:land_detail' slug=item.land.slug %}" class="text-dark text-decoration-none">{{ item.land.title }}</a></h5>
+          <div class="land-location small"><i class="fa-solid fa-location-dot text-danger"></i> {{ item.land.location }}</div>
+          <div class="price-box d-flex justify-content-between align-items-center mt-3">
+            <div class="crypto-price fs-6">{{ item.land.price_crypto }} {{ item.land.crypto_currency }}</div>
+            <a href="{% url 'app:land_detail' slug=item.land.slug %}" class="btn btn-sm btn-glass">Inspect</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

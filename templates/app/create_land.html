@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} — MyApp{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="p-4 p-md-5 rounded-4 shadow-lg" style="background: #ffffff; border: 1px solid var(--border-color);">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.4rem;">
+            <i class="fa-solid fa-map-location-dot"></i>
+          </div>
+          <div>
+            <h2 class="font-monospace text-dark fw-bold mb-0">{{ title }}</h2>
+            <p class="text-muted small mb-0">Fill out land plot size, Nigerian State/LGA, location details, and crypto pricing.</p>
+          </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label font-monospace">PROPERTY TITLE *</label>
+              {{ form.title }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-monospace">TITLE DOCUMENT / SURVEY NO.</label>
+              {{ form.parcel_id }}
+            </div>
+          </div>
+
+          <!-- Nigerian State & LGA Selector -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">NIGERIAN STATE / FCT *</label>
+              {{ form.state }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">LOCAL GOVERNMENT AREA (LGA)</label>
+              {{ form.lga }}
+            </div>
+          </div>
+
+          <!-- Crypto & Auto-Calculated USD Price -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label font-monospace">CRYPTO PRICE *</label>
+              {{ form.price_crypto }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-monospace">CURRENCY *</label>
+              {{ form.crypto_currency }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-monospace">EQUIVALENT USD / USDT ($)</label>
+              {{ form.price_usd }}
+              <div class="form-text small text-muted"><i class="fa-solid fa-calculator text-success me-1"></i> Auto-calculated from exchange rate.</div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label font-monospace">ZONING CATEGORY *</label>
+              {{ form.zoning_type }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-monospace">SIZE IN SQ METERS (SQM) *</label>
+              {{ form.size_sqm }}
+              <div class="form-text small text-muted">1 Standard Plot = ~600 m² (or 500 m²).</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-monospace">HECTARES / ACRES (OPTIONAL)</label>
+              {{ form.size_acres }}
+              <div class="form-text small text-muted">1 Hectare = 10,000 m² (~15 Plots).</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace">NEIGHBORHOOD / AREA DETAILS *</label>
+            {{ form.location }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace">PHYSICAL ADDRESS / STREET DETAILS</label>
+            {{ form.address }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-monospace">PROPERTY DESCRIPTION & DOCUMENTS</label>
+            {{ form.description }}
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label font-monospace">LATITUDE COORDINATE (OPTIONAL)</label>
+              {{ form.latitude }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-monospace">LONGITUDE COORDINATE (OPTIONAL)</label>
+              {{ form.longitude }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label font-monospace">FEATURED PROPERTY IMAGE (MANAGED VIA CLOUDINARY)</label>
+            {{ form.featured_image }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-3">
+            <a href="{% url 'app:seller_dashboard' %}" class="btn btn-glass px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary-green px-5 fw-bold">
+              {% if is_edit %}Save Changes{% else %}Publish Land Listing{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Cascading Nigerian State -> LGA logic
+  const stateSelect = document.getElementById('id_state');
+  const lgaSelect = document.getElementById('id_lga');
+
+  if (stateSelect && lgaSelect) {
+    stateSelect.addEventListener('change', function() {
+      const selectedState = this.value;
+      lgaSelect.innerHTML = '<option value="">Loading LGAs...</option>';
+
+      if (!selectedState) {
+        lgaSelect.innerHTML = '<option value="">Select State First</option>';
+        return;
+      }
+
+      fetch(`/api/lgas/?state=${encodeURIComponent(selectedState)}`)
+        .then(response => response.json())
+        .then(data => {
+          lgaSelect.innerHTML = '<option value="">Select LGA</option>';
+          data.lgas.forEach(lga => {
+            const opt = document.createElement('option');
+            opt.value = lga;
+            opt.textContent = lga;
+            lgaSelect.appendChild(opt);
+          });
+        })
+        .catch(err => {
+          console.error('Error loading LGAs:', err);
+          lgaSelect.innerHTML = '<option value="">Select LGA</option>';
+        });
+    });
+  }
+
+  // Live Exchange Rates calculation
+  let exchangeRates = {
+    'ETH': 3200.00,
+    'SOL': 145.00,
+    'BTC': 64000.00,
+    'USDT': 1.00
+  };
+
+  // Fetch latest exchange rates from backend module API
+  fetch('/api/exchange-rates/')
+    .then(r => r.json())
+    .then(d => {
+      if (d.rates) {
+        exchangeRates = d.rates;
+        calculateUsdValue();
+      }
+    })
+    .catch(err => console.log('Using default exchange rates module:', err));
+
+  const priceCryptoInput = document.getElementById('id_price_crypto');
+  const currencySelect = document.getElementById('id_crypto_currency');
+  const priceUsdInput = document.getElementById('id_price_usd');
+
+  function calculateUsdValue() {
+    if (!priceCryptoInput || !currencySelect || !priceUsdInput) return;
+    const cryptoVal = parseFloat(priceCryptoInput.value);
+    const curr = currencySelect.value || 'ETH';
+    const rate = exchangeRates[curr] || 1.0;
+
+    if (!isNaN(cryptoVal) && cryptoVal > 0) {
+      priceUsdInput.value = (cryptoVal * rate).toFixed(2);
+    }
+  }
+
+  if (priceCryptoInput && currencySelect) {
+    priceCryptoInput.addEventListener('input', calculateUsdValue);
+    currencySelect.addEventListener('change', calculateUsdValue);
+  }
+});
+</script>
+{% endblock %}

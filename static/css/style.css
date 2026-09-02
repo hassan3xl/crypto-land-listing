@@ -1,0 +1,399 @@
+/* MyApp - Solid Premium Green Light Theme */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+:root {
+  --bg-light: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-color: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary-green: #059669;
+  --primary-green-dark: #047857;
+  --primary-green-light: #ecfdf5;
+  --accent-amber: #d97706;
+  --accent-pink: #db2777;
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: #e2e8f0;
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 20px 35px -10px rgba(15, 23, 42, 0.12);
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+}
+
+body {
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  font-family:
+    "Outfit",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navigation */
+.navbar-custom {
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 800;
+  font-size: 1.45rem;
+  color: var(--primary-green) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Live Ticker Ribbon */
+.crypto-ticker-bar {
+  background: #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
+  padding: 0.4rem 0;
+  font-size: 0.82rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.crypto-badge-pill {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.2rem 0.7rem;
+  border-radius: 50px;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* Solid Premium Green Buttons */
+.btn-primary-gradient,
+.btn-primary-green {
+  background-color: var(--primary-green) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+.btn-primary-gradient:hover,
+.btn-primary-green:hover {
+  background-color: var(--primary-green-dark) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
+}
+
+.btn-glass {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.btn-glass:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* Custom Cards */
+.land-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: all 0.25s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+}
+
+.land-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-green);
+  box-shadow: var(--shadow-lg);
+}
+
+.land-card-img-wrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.land-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.land-card:hover .land-card-img {
+  transform: scale(1.04);
+}
+
+.zoning-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: var(--primary-green);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.3rem 0.75rem;
+  border-radius: 50px;
+  box-shadow: var(--shadow-sm);
+}
+
+.deed-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--primary-green);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.save-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover,
+.save-btn.active {
+  background: #db2777;
+  color: #ffffff;
+  border-color: #db2777;
+}
+
+.land-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.land-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+  line-height: 1.3;
+}
+
+.land-location {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.price-box {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  margin-top: auto;
+}
+
+.crypto-price {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-green);
+}
+
+.usd-price {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Light Forms & Controls */
+.form-control,
+.form-select {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: #ffffff !important;
+  border-color: var(--primary-green) !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.2) !important;
+}
+
+.form-label {
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.88rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  padding: 4.5rem 0 3.5rem;
+  background: #f8fafc;
+}
+
+.hero-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+  color: #0f172a !important;
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: #475569;
+  max-width: 650px;
+  margin: 0 auto 2.5rem;
+}
+
+.text-primary-green {
+  color: var(--primary-green) !important;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-number {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--primary-green) !important;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* Status Badges */
+.badge-status {
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.status-available {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+.status-under_contract {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.status-sold {
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+.status-pending {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+/* Light Tables */
+.table {
+  color: #1e293b !important;
+  --bs-table-bg: transparent;
+}
+
+.table-dark {
+  --bs-table-bg: #ffffff !important;
+  --bs-table-color: #0f172a !important;
+  --bs-table-hover-bg: #f8fafc !important;
+  --bs-table-hover-color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+.table-dark th {
+  color: #475569 !important;
+  background-color: #f1f5f9 !important;
+  font-weight: 700;
+}
+
+.table-dark td {
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background: #ffffff;
+  border-top: 1px solid var(--border-color);
+  padding: 3.5rem 0 2rem;
+  color: var(--text-muted);
+}
